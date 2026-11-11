@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For You 💕</title>
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --pink: #ff5c8a;
+  --bg: #fff0f5;
+  --ink: #3b1d2a;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  overflow-x: hidden;
+}
+h1 { font-size: clamp(2rem, 6vw, 3.5rem); margin: 0 0 8px; }
+h2 { font-size: 1.4rem; margin: 40px 0 12px; }
+p { font-size: 1.1rem; max-width: 520px; }
+button {
+  font: inherit;
+  font-size: 1.05rem;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 26px;
+  background: var(--pink);
+  color: #fff;
+  cursor: pointer;
+  margin: 6px;
+  transition: transform 0.15s;
+}
+button:hover { transform: scale(1.05); }
+.msg { min-height: 2.5em; font-size: 1.3rem; font-weight: 600; margin: 16px 0; }
+.section { margin-top: 36px; width: 100%; max-width: 440px; }
+.box { position: relative; width: 100%; height: 90px; }
+#no {
+  position: absolute;
+  left: 60%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: #9a8a92;
+  transition: left 0.2s, top 0.2s;
+}
+#arena {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(255, 92, 138, 0.2);
+  overflow: hidden;
+  touch-action: manipulation;
+}
+.heart {
+  position: absolute;
+  font-size: 2rem;
+  cursor: pointer;
+  user-select: none;
+  animation: pop 0.2s ease-out;
+}
+@keyframes pop { from { transform: scale(0.3); } to { transform: scale(1); } }
+#hud { font-weight: 600; margin: 10px 0; }
+footer { margin-top: 40px; font-size: 0.9rem; opacity: 0.6; }
+.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 240px; margin: 12px auto; }
+.cell { aspect-ratio: 1; background: #fff; border-radius: 12px; font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; padding: 0; margin: 0; color: var(--ink); }
+.cell:hover { transform: none; }
+.meter { width: 100%; height: 28px; background: #fff; border-radius: 999px; overflow: hidden; box-shadow: inset 0 2px 6px rgba(0,0,0,0.1); }
+#meterFill { height: 100%; width: 0; background: linear-gradient(90deg, var(--pink), #ff2d6f); transition: width 0.1s; }
+#charge { user-select: none; touch-action: none; }
+</style>
+</head>
+<body>
+
+<h1 id="title">Hey 💕</h1>
+<p>I made you something. Don't judge the code. 😌</p>
+
+<div class="section">
+  <h2>Quick question</h2>
+  <div class="msg" id="answer">Do you love me?</div>
+  <button id="yes">Yes 💖</button>
+  <div class="box" id="box">
+    <button id="no">No 🙅</button>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Big red button</h2>
+  <button id="surprise">Press me 🎁</button>
+  <div class="msg" id="surpriseMsg"></div>
+</div>
+
+<div class="section">
+  <h2>Catch the hearts!</h2>
+  <p>You have 15 seconds. Tap as many as you can.</p>
+  <div id="hud">Score: <span id="score">0</span> · Time: <span id="time">15</span>s</div>
+  <div id="arena"></div>
+  <button id="start">Start 🎮</button>
+  <div class="msg" id="gameMsg"></div>
+</div>
+
+<div class="section">
+  <h2>Tic-tac-toe</h2>
+  <p>Take turns on this screen. X goes first.</p>
+  <div class="board" id="board"></div>
+  <button id="reset">New game 🔄</button>
+  <div class="msg" id="tttMsg"></div>
+</div>
+
+<div class="section">
+  <h2>Would you rather</h2>
+  <div class="msg" id="wyrQ"></div>
+  <button id="wyrA"></button>
+  <button id="wyrB"></button>
+  <div class="msg" id="wyrMsg"></div>
+</div>
+
+<div class="section">
+  <h2>Love meter</h2>
+  <p>Hold the button to fill the meter.</p>
+  <div class="meter"><div id="meterFill"></div></div>
+  <button id="charge">Hold me 💞</button>
+  <div class="msg" id="meterMsg"></div>
+</div>
+
+<footer>Made with way too much love (and a little caffeine) ☕</footer>
+
+<script>
+// Change this to her name or a nickname
+const NAME = "Vania Jenong";
+document.getElementById("title").textContent = `Hey ${NAME} 💕`;
+
+// Yes / No
+const answer = document.getElementById("answer");
+const yes = document.getElementById("yes");
+const no = document.getElementById("no");
+const box = document.getElementById("box");
+
+yes.addEventListener("click", () => {
+  answer.textContent = "Correct answer. Score: 100/100 🏆💖";
+  yes.style.display = "none";
+  no.style.display = "none";
+});
+
+function moveNo() {
+  const maxX = box.clientWidth - no.offsetWidth;
+  const maxY = box.clientHeight - no.offsetHeight;
+  no.style.left = Math.random() * maxX + "px";
+  no.style.top = Math.random() * maxY + "px";
+  no.style.transform = "none";
+  answer.textContent = ["Nice try 😏", "Wrong button 🙃", "Still no 🫵", "Hmm, try again"][Math.floor(Math.random() * 4)];
+}
+no.addEventListener("pointerenter", moveNo);
+no.addEventListener("click", moveNo);
+
+// Surprise button
+const lines = [
+  "You're my favorite notification 📱",
+  "Still the best decision I've ever made 😌",
+  "Certified cutest human alive 🏆",
+  "I'd pick you in every timeline 🌌",
+  "Hug balance: infinite 🤗",
+  "Reminder: you're amazing and I'm lucky 💕",
+  "Rated 10/10, no notes 🌟"
+];
+document.getElementById("surprise").addEventListener("click", () => {
+  document.getElementById("surpriseMsg").textContent = lines[Math.floor(Math.random() * lines.length)];
+});
+
+// Heart catching game
+const arena = document.getElementById("arena");
+const startBtn = document.getElementById("start");
+const scoreEl = document.getElementById("score");
+const timeEl = document.getElementById("time");
+const gameMsg = document.getElementById("gameMsg");
+let score = 0, timeLeft = 15, timer = null, spawner = null;
+
+function spawnHeart() {
+  const h = document.createElement("span");
+  h.className = "heart";
+  h.textContent = ["💗", "💖", "💘", "💝"][Math.floor(Math.random() * 4)];
+  h.style.left = Math.random() * (arena.clientWidth - 40) + "px";
+  h.style.top = Math.random() * (arena.clientHeight - 40) + "px";
+  h.addEventListener("click", () => {
+    score++;
+    scoreEl.textContent = score;
+    h.remove();
+  });
+  arena.appendChild(h);
+  setTimeout(() => h.remove(), 1500);
+}
+
+function endGame() {
+  clearInterval(timer);
+  clearInterval(spawner);
+  timer = null;
+  spawner = null;
+  arena.innerHTML = "";
+  gameMsg.textContent = score >= 15
+    ? `${score} hearts! You're officially a legend 🏆`
+    : `You caught ${score}. The hearts were dodging, clearly. Try again? 😜`;
+  startBtn.textContent = "Play again 🎮";
+}
+
+startBtn.addEventListener("click", () => {
+  if (timer) return;
+  score = 0;
+  timeLeft = 15;
+  scoreEl.textContent = score;
+  timeEl.textContent = timeLeft;
+  gameMsg.textContent = "";
+  arena.innerHTML = "";
+  spawner = setInterval(spawnHeart, 500);
+  timer = setInterval(() => {
+    timeLeft--;
+    timeEl.textContent = timeLeft;
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+  spawnHeart();
+});
+// Tic-tac-toe
+const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+let cells = Array(9).fill(""), turn = "X", over = false;
+const boardEl = document.getElementById("board");
+const tttMsg = document.getElementById("tttMsg");
+
+function buildBoard() {
+  boardEl.innerHTML = "";
+  cells.forEach((val, i) => {
+    const b = document.createElement("button");
+    b.className = "cell";
+    b.textContent = val;
+    b.addEventListener("click", () => play(i));
+    boardEl.appendChild(b);
+  });
+}
+
+function play(i) {
+  if (over || cells[i]) return;
+  cells[i] = turn;
+  const won = WINS.some(w => w.every(k => cells[k] === turn));
+  if (won) {
+    over = true;
+    tttMsg.textContent = turn === "X" ? "X wins! Obviously 👑" : "O wins! Rematch? 😤";
+  } else if (cells.every(Boolean)) {
+    over = true;
+    tttMsg.textContent = "Draw. A very romantic tie 💞";
+  } else {
+    turn = turn === "X" ? "O" : "X";
+    tttMsg.textContent = `${turn}'s turn`;
+  }
+  buildBoard();
+}
+
+document.getElementById("reset").addEventListener("click", () => {
+  cells = Array(9).fill("");
+  turn = "X";
+  over = false;
+  tttMsg.textContent = "X goes first";
+  buildBoard();
+});
+
+buildBoard();
+
+// Would you rather
+const wyr = [
+  ["Would you rather...", "Cuddle all day 🛋️", "Date night out 🍕"],
+  ["Would you rather...", "Always be on time ⏰", "Always be funny 😂"],
+  ["Would you rather...", "Travel to Japan 🇯🇵", "Travel to Bali 🌴"],
+  ["Would you rather...", "Breakfast in bed 🥞", "Midnight snack run 🍜"]
+];
+const wyrQ = document.getElementById("wyrQ");
+const wyrA = document.getElementById("wyrA");
+const wyrB = document.getElementById("wyrB");
+const wyrMsg = document.getElementById("wyrMsg");
+
+function newWyr(reaction) {
+  const [q, a, b] = wyr[Math.floor(Math.random() * wyr.length)];
+  wyrQ.textContent = q;
+  wyrA.textContent = a;
+  wyrB.textContent = b;
+  wyrMsg.textContent = reaction || "";
+}
+wyrA.addEventListener("click", () => newWyr("Great taste 😌 Next one!"));
+wyrB.addEventListener("click", () => newWyr("Bold choice 😏 Next one!"));
+newWyr();
+
+// Love meter
+let meterVal = 0, meterTimer = null;
+const fill = document.getElementById("meterFill");
+const meterMsg = document.getElementById("meterMsg");
+const chargeBtn = document.getElementById("charge");
+
+function startCharge() {
+  if (meterTimer || meterVal >= 100) return;
+  meterTimer = setInterval(() => {
+    meterVal = Math.min(100, meterVal + 2);
+    fill.style.width = meterVal + "%";
+    if (meterVal >= 100) {
+      stopCharge();
+      meterMsg.textContent = "Overflowing with love 💥 Meter maxed!";
+    }
+  }, 50);
+}
+
+function stopCharge() {
+  clearInterval(meterTimer);
+  meterTimer = null;
+  if (meterVal < 100) {
+    meterMsg.textContent = meterVal < 50 ? "Low battery, hug me more 🥺" : "Almost there, keep going 😤";
+  }
+}
+
+chargeBtn.addEventListener("pointerdown", startCharge);
+["pointerup", "pointerleave", "pointercancel"].forEach(ev => chargeBtn.addEventListener(ev, stopCharge));
+</script>
+</body>
+</html>
